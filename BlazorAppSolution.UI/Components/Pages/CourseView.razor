@@ -1,0 +1,117 @@
+﻿@page "/course"
+@using BlazorAppSolution.UI.Model
+@using BlazorAppSolution.UI.Services
+@inject CourseService CourseService
+@inject CategoryService CategoryService
+@inject IJSRuntime JS
+@inject NavigationManager Navigation
+
+<PageTitle>Course</PageTitle>
+
+<div class="course-container">
+    <h1>Course</h1>
+
+    <NavLink class="btn btn-primary mb-3" href="/course/create">Add New Course</NavLink>
+
+    @if (courses == null)
+    {
+        <p><em>Loading...</em></p>
+    }
+    else if (courses.Count == 0)
+    {
+        <p>No courses found.</p>
+    }
+    else
+    {
+        <div class="row">
+            @foreach (var course in courses)
+            {
+                <div class="col-md-4 mb-4">
+                    <div class="card course-card">
+                        <img src="@course.ImageName" alt="@course.Name" class="card-img-top" />
+                        <div class="card-body text-center">
+                            <h5 class="card-title">@course.Name</h5>
+                            <p class="card-text">Duration: @course.Duration</p>
+                            <p class="card-text">@course.Description</p>
+                            <p class="card-text">Category: @(GetCategoryName(course.CategoryId))</p>
+                            <button class="btn btn-secondary me-2" @onclick="() => UpdateCourse(course.CourseId ?? 0)">Update</button>
+                            <button class="btn btn-danger" @onclick="() => DeleteCourse(course.CourseId ?? 0)">Delete</button>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<style>
+    /* Your existing styles */
+</style>
+
+@code {
+    private List<Course>? courses;
+    private List<Category>? categories;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadCategories(); // Load categories
+        await LoadCourses(); // Then load courses
+    }
+
+    private async Task LoadCourses()
+    {
+        try
+        {
+            courses = await CourseService.GetCoursesAsync();
+        }
+        catch (Exception ex)
+        {
+            await JS.InvokeVoidAsync("alert", $"An error occurred while loading courses: {ex.Message}");
+        }
+    }
+
+    private async Task LoadCategories()
+    {
+        try
+        {
+            categories = await CategoryService.GetCategoriesAsync(); // Ensure this method fetches all categories
+        }
+        catch (Exception ex)
+        {
+            await JS.InvokeVoidAsync("alert", $"An error occurred while loading categories: {ex.Message}");
+        }
+    }
+
+    private string GetCategoryName(int? categoryId)
+    {
+        if (categoryId.HasValue)
+        {
+            var category = categories?.FirstOrDefault(c => c.CategoryId == categoryId.Value);
+            return category?.Name ?? "Unknown Category";
+        }
+        return "Unknown Category";
+    }
+
+    private void UpdateCourse(int courseId)
+    {
+        Navigation.NavigateTo($"/course/edit/{courseId}");
+    }
+
+    private async Task DeleteCourse(int courseId)
+    {
+        bool confirm = await JS.InvokeAsync<bool>("confirm", "Are you sure you want to delete this course?");
+        if (confirm)
+        {
+            try
+            {
+                Console.WriteLine($"Deleting course with ID: {courseId}"); // Log the ID
+                await CourseService.DeleteCourseAsync(courseId);
+                await LoadCourses(); // Refresh the course list after deletion
+            }
+            catch (Exception ex)
+            {
+                await JS.InvokeVoidAsync("alert", $"An error occurred while deleting the course: {ex.Message}");
+            }
+        }
+    }
+}

@@ -1,0 +1,80 @@
+﻿@page "/course/create"
+@using BlazorAppSolution.UI.Model
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+@rendermode InteractiveServer
+
+<h3 class="text-center mt-4">Add New Course</h3>
+
+<div class="container mt-5">
+    <div class="card shadow p-4">
+        <div class="card-body">
+            <form>
+                <div class="form-group mb-3">
+                    <label for="name" class="form-label fw-bold">Name:</label>
+                    <input id="name" @bind="course.Name" class="form-control" placeholder="Enter course name" />
+                </div>
+
+                <div class="form-group mb-3">
+                    <label for="image" class="form-label fw-bold">Image URL:</label>
+                    <input id="image" @bind="course.ImageName" class="form-control" placeholder="Enter image URL" />
+                </div>
+
+                <div class="form-group mb-3">
+                    <label for="duration" class="form-label fw-bold">Duration:</label>
+                    <input id="duration" type="number" @bind="course.Duration" class="form-control" placeholder="Enter duration in hours" />
+                </div>
+
+                <div class="form-group mb-4">
+                    <label for="description" class="form-label fw-bold">Description:</label>
+                    <input id="description" @bind="course.Description" class="form-control" placeholder="Enter description" />
+                </div>
+
+                <div class="form-group mb-4">
+                    <label for="category" class="form-label fw-bold">Category:</label>
+                    <select id="category" @bind="course.CategoryId" class="form-control">
+                        <option value="">Select Category</option>
+                        @foreach (var category in availableCategories)
+                        {
+                            <option value="@category.CategoryId">@category.Name</option>
+                        }
+                    </select>
+                </div>
+
+                <button type="button" class="btn btn-primary w-100" @onclick="SaveCourse">Save</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+@code {
+    private Course course = new Course();
+    private List<Category> availableCategories = new List<Category>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Fetch available categories to populate the dropdown
+        availableCategories = await Http.GetFromJsonAsync<List<Category>>("https://actualbackendapp.azurewebsites.net/api/v1/Categories");
+    }
+
+    private async Task SaveCourse()
+    {
+        try
+        {
+            var response = await Http.PostAsJsonAsync("https://actualbackendapp.azurewebsites.net/api/Courses", course);
+
+            // Ensure the response is successful
+            response.EnsureSuccessStatusCode();
+
+            await JS.InvokeVoidAsync("alert", "Course saved successfully!");
+            Navigation.NavigateTo("/course");
+            course = new Course(); // Reset the form
+        }
+        catch (Exception ex)
+        {
+            await JS.InvokeVoidAsync("alert", "Course can't be created!");
+            Console.WriteLine(ex.Message); // Log the error for debugging
+        }
+    }
+}

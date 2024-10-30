@@ -1,0 +1,21 @@
+﻿@page "/"
+@rendermode InteractiveServer
+
+<PageTitle>Home</PageTitle>
+
+<h1>Hello, world!</h1>
+Welcome to your new app.
+
+<input @bind="message" />
+<button @onclick="() => message = string.Empty">Clear</button>
+<p>@message</p>
+
+
+@code{
+    string message = "";
+    void InputChanged(ChangeEventArgs e)
+    {
+        message = (string)e.Value;
+    }
+
+} 
