@@ -1,21 +1,132 @@
 ﻿@page "/"
+@using BlazorAppSolution.UI.Services
+@using BlazorAppSolution.UI.Model
 @rendermode InteractiveServer
+
+@inject CourseService CourseService
 
 <PageTitle>Home</PageTitle>
 
-<h1>Hello, world!</h1>
-Welcome to your new app.
-
-<input @bind="message" />
-<button @onclick="() => message = string.Empty">Clear</button>
-<p>@message</p>
-
-
-@code{
-    string message = "";
-    void InputChanged(ChangeEventArgs e)
-    {
-        message = (string)e.Value;
+<style>
+    /* Styles as provided */
+    .page-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+        font-family: Arial, sans-serif;
+        color: #333;
     }
 
-} 
+    h1 {
+        text-align: center;
+        color: #5a67d8;
+        font-size: 2rem;
+        margin-bottom: 20px;
+    }
+
+    .filter-section {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+        justify-content: center;
+    }
+
+    .filter-section input {
+        padding: 8px;
+        font-size: 1rem;
+        border-radius: 4px;
+        border: 1px solid #ddd;
+        width: 100%;
+    }
+
+    .course-catalog {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 20px;
+    }
+
+    .course-item {
+        border: 1px solid #ddd;
+        padding: 15px;
+        border-radius: 8px;
+        background-color: #f9f9f9;
+        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .course-item:hover {
+        transform: scale(1.02);
+        box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .course-item h3 {
+        color: #2d3748;
+        font-size: 1.25rem;
+        margin-top: 0;
+    }
+
+    .course-item p {
+        color: #4a5568;
+        font-size: 1rem;
+        margin: 10px 0 0;
+    }
+</style>
+
+<div class="page-container">
+    <h1>List Courses</h1>
+
+    <div class="filter-section">
+        <input type="text" placeholder="Search by course name" @bind="searchText" @onkeydown="HandleEnterKey" />
+    </div>
+
+    @if (filteredCourses == null)
+    {
+        <p>Loading courses...</p>
+    }
+    else if (filteredCourses.Count == 0)
+    {
+        <p>No courses available.</p>
+    }
+    else
+    {
+        <div class="course-catalog">
+            @foreach (var course in filteredCourses)
+            {
+                <div class="course-item">
+                    <img src="@course.ImageName" alt="@course.Name" class="card-img-top" />
+                    <div class="card-body text-center">
+                        <h5 class="card-title">@course.Name</h5>
+                        <p class="card-text">Category: @course.Category.Name</p>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private List<Course> courses;
+    private List<Course> filteredCourses;
+    private string searchText = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        courses = await CourseService.GetCoursesAsync();
+        ApplyFilters();
+    }
+
+    private void ApplyFilters()
+    {
+        filteredCourses = courses
+            .Where(c => string.IsNullOrEmpty(searchText) || c.Name.Contains(searchText, StringComparison.OrdinalIgnoreCase))
+            .ToList();
+    }
+
+    private void HandleEnterKey(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            ApplyFilters();
+        }
+    }
+}

@@ -9,22 +9,26 @@
 <PageTitle>Category</PageTitle>
 
 <div class="catalog-container">
-    <h1>Catalog</h1>
+    <h1>Category</h1>
 
     <NavLink class="btn btn-primary mb-3" href="/category/create">Add New Category</NavLink>
 
-    @if (categories == null)
+    <div class="filter-section mb-3">
+        <input type="text" placeholder="Search by category name" @bind="searchText" class="form-control" @oninput="ApplyFilter" />
+    </div>
+
+    @if (filteredCategories == null)
     {
         <p><em>Loading...</em></p>
     }
-    else if (categories.Count == 0)
+    else if (filteredCategories.Count == 0)
     {
         <p>No categories found.</p>
     }
     else
     {
         <div class="row">
-            @foreach (var category in categories)
+            @foreach (var category in filteredCategories)
             {
                 <div class="col-md-4 mb-4">
                     <div class="card category-card">
@@ -42,52 +46,62 @@
 </div>
 
 <style>
+    /* Styles for container, card, and buttons */
     .catalog-container {
-        background-color: #ffffff; /* White background for the container */
-        color: #000000; /* Black text color */
+        background-color: #ffffff;
+        color: #000000;
         padding: 20px;
     }
 
+    .filter-section input {
+        width: 100%; /* Make the search input full-width */
+        margin: 0 auto;
+        display: block;
+        padding: 8px 12px; /* Add padding for a more spacious feel */
+    }
+
     .category-card {
-        background-color: #f8f9fa; /* Light gray background for cards */
-        color: #000000; /* Black text color */
-        border: 1px solid #ccc; /* Light border for cards */
-        border-radius: 10px; /* Curved edges */
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Subtle shadow effect */
-        transition: transform 0.2s; /* Smooth transition for hover effect */
+        background-color: #f8f9fa;
+        color: #000000;
+        border: 1px solid #ccc;
+        border-radius: 10px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        transition: transform 0.2s;
     }
 
     .category-card:hover {
-        transform: translateY(-2px); /* Slight lift on hover */
+        transform: translateY(-2px);
     }
 
     .category-card .btn-secondary {
-        background-color: #007bff; /* Primary button color */
-        color: #ffffff; /* White text */
+        background-color: #007bff;
+        color: #ffffff;
     }
 
     .category-card .btn-secondary:hover {
-        background-color: #0056b3; /* Darker shade on hover */
+        background-color: #0056b3;
         color: #ffffff;
     }
 
     .category-card .btn-danger {
-        background-color: #dc3545; /* Danger button color */
-        color: #ffffff; /* White text */
-    }
-
-    .category-card .btn-danger:hover {
-        background-color: #c82333; /* Darker shade on hover */
+        background-color: #dc3545;
         color: #ffffff;
     }
 
-    .text-center { /* Centering text */
+    .category-card .btn-danger:hover {
+        background-color: #c82333;
+        color: #ffffff;
+    }
+
+    .text-center {
         text-align: center;
     }
 </style>
 
 @code {
     private List<Category>? categories;
+    private List<Category>? filteredCategories;
+    private string searchText = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
@@ -99,10 +113,23 @@
         try
         {
             categories = await CategoryService.GetCategoriesAsync();
+            ApplyFilter(); // Initialize filtered categories
         }
         catch (Exception ex)
         {
             await JS.InvokeVoidAsync("alert", $"An error occurred while loading categories: {ex.Message}");
+        }
+    }
+
+    private void ApplyFilter()
+    {
+        if (string.IsNullOrEmpty(searchText))
+        {
+            filteredCategories = categories;
+        }
+        else
+        {
+            filteredCategories = categories?.Where(c => c.Name.Contains(searchText, StringComparison.OrdinalIgnoreCase)).ToList();
         }
     }
 

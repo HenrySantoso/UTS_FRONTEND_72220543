@@ -14,18 +14,23 @@
 
     <NavLink class="btn btn-primary mb-3" href="/course/create">Add New Course</NavLink>
 
-    @if (courses == null)
+    <div class="filter-section mb-3">
+        <input type="text" placeholder="Search by course name" @bind="searchText" class="form-control"
+               @oninput="ApplyFilter" @onkeydown="HandleEnterKey" />
+    </div>
+
+    @if (filteredCourses == null)
     {
         <p><em>Loading...</em></p>
     }
-    else if (courses.Count == 0)
+    else if (filteredCourses.Count == 0)
     {
         <p>No courses found.</p>
     }
     else
     {
         <div class="row">
-            @foreach (var course in courses)
+            @foreach (var course in filteredCourses)
             {
                 <div class="col-md-4 mb-4">
                     <div class="card course-card">
@@ -51,12 +56,14 @@
 
 @code {
     private List<Course>? courses;
+    private List<Course>? filteredCourses;
     private List<Category>? categories;
+    private string searchText = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadCategories(); // Load categories
-        await LoadCourses(); // Then load courses
+        await LoadCategories();
+        await LoadCourses();
     }
 
     private async Task LoadCourses()
@@ -64,6 +71,7 @@
         try
         {
             courses = await CourseService.GetCoursesAsync();
+            ApplyFilter(); // Initialize filtered courses
         }
         catch (Exception ex)
         {
@@ -75,11 +83,31 @@
     {
         try
         {
-            categories = await CategoryService.GetCategoriesAsync(); // Ensure this method fetches all categories
+            categories = await CategoryService.GetCategoriesAsync();
         }
         catch (Exception ex)
         {
             await JS.InvokeVoidAsync("alert", $"An error occurred while loading categories: {ex.Message}");
+        }
+    }
+
+    private void ApplyFilter()
+    {
+        if (string.IsNullOrEmpty(searchText))
+        {
+            filteredCourses = courses;
+        }
+        else
+        {
+            filteredCourses = courses?.Where(c => c.Name.Contains(searchText, StringComparison.OrdinalIgnoreCase)).ToList();
+        }
+    }
+
+    private void HandleEnterKey(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            ApplyFilter();
         }
     }
 
@@ -95,9 +123,9 @@
         {
             try
             {
-                Console.WriteLine($"Deleting course with ID: {courseId}"); // Log the ID
+                Console.WriteLine($"Deleting course with ID: {courseId}");
                 await CourseService.DeleteCourseAsync(courseId);
-                await LoadCourses(); // Refresh the course list after deletion
+                await LoadCourses();
             }
             catch (Exception ex)
             {
