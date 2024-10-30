@@ -24,7 +24,7 @@ namespace BlazorAppSolution.UI.Services
         }
 
         // Get a course by ID
-        public async Task<Course> GetCourseAsync(int id)
+        public async Task<Course> GetCourseByIDAsync(int id)
         {
             return await _httpClient.GetFromJsonAsync<Course>($"{CourseApiUrl}/{id}");
         }

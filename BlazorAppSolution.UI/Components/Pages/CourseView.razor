@@ -5,6 +5,7 @@
 @inject CategoryService CategoryService
 @inject IJSRuntime JS
 @inject NavigationManager Navigation
+@rendermode InteractiveServer
 
 <PageTitle>Course</PageTitle>
 
@@ -33,7 +34,7 @@
                             <h5 class="card-title">@course.Name</h5>
                             <p class="card-text">Duration: @course.Duration</p>
                             <p class="card-text">@course.Description</p>
-                            <p class="card-text">Category: @(GetCategoryName(course.CategoryId))</p>
+                            <p class="card-text">Category: @course.Category.Name</p>
                             <button class="btn btn-secondary me-2" @onclick="() => UpdateCourse(course.CourseId ?? 0)">Update</button>
                             <button class="btn btn-danger" @onclick="() => DeleteCourse(course.CourseId ?? 0)">Delete</button>
                         </div>
@@ -80,16 +81,6 @@
         {
             await JS.InvokeVoidAsync("alert", $"An error occurred while loading categories: {ex.Message}");
         }
-    }
-
-    private string GetCategoryName(int? categoryId)
-    {
-        if (categoryId.HasValue)
-        {
-            var category = categories?.FirstOrDefault(c => c.CategoryId == categoryId.Value);
-            return category?.Name ?? "Unknown Category";
-        }
-        return "Unknown Category";
     }
 
     private void UpdateCourse(int courseId)

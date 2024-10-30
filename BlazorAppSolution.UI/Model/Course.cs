@@ -7,6 +7,7 @@
         public string? ImageName { get; set; }
         public int? Duration { get; set; }
         public string? Description { get; set; }
-        public int? CategoryId { get; set; } // Reference to the category
+        public int? CategoryId { get; set; }
+        public Category? Category { get; set; } 
     }
 }

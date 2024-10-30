@@ -22,7 +22,10 @@
                     <input id="description" @bind="category.Description" class="form-control" placeholder="Enter description" />
                 </div>
 
-                <button type="button" class="btn btn-primary w-100" @onclick="SaveCategory">Save</button>
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-primary w-100" @onclick="SaveCategory">Save</button>
+                    <button type="button" class="btn btn-secondary w-100" @onclick="Cancel">Cancel</button>
+                </div>
             </form>
         </div>
     </div>
@@ -43,6 +46,12 @@
         catch (Exception ex)
         {
             await JS.InvokeVoidAsync("alert", "Category can't be created!");
+            Console.WriteLine(ex.Message); // Log error for debugging
         }
+    }
+
+    private void Cancel()
+    {
+        Navigation.NavigateTo("/category"); // Redirects to the category list page
     }
 }
