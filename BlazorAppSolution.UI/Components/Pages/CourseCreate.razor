@@ -42,8 +42,10 @@
                         }
                     </select>
                 </div>
-
-                <button type="button" class="btn btn-primary w-100" @onclick="SaveCourse">Save</button>
+                <div class="form-group mb-4 d-flex justify-content-between">
+                    <button type="button" class="btn btn-primary" @onclick="SaveCourse">Save</button>
+                    <button type="button" class="btn btn-secondary" @onclick="Cancel">Cancel</button> <!-- Moved Cancel button beside Save -->
+                </div>
             </form>
         </div>
     </div>
@@ -85,5 +87,11 @@
             await JS.InvokeVoidAsync("alert", "Course can't be created!");
             Console.WriteLine("Error saving course: " + ex);
         }
+    }
+
+    private void Cancel()
+    {
+        // Redirect to the course listing page when canceling
+        Navigation.NavigateTo("/course");
     }
 }

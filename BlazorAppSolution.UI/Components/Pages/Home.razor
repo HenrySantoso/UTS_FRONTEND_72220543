@@ -8,67 +8,121 @@
 <PageTitle>Home</PageTitle>
 
 <style>
-    /* Styles as provided */
+    /* Styles for the main container */
     .page-container {
-        max-width: 800px;
+        max-width: 1000px; /* Increased max width for a more spacious layout */
         margin: 0 auto;
-        padding: 20px;
-        font-family: Arial, sans-serif;
+        padding: 40px; /* Increased padding for a more luxurious feel */
+        font-family: 'Arial', sans-serif;
         color: #333;
+        background-color: #f4f7fa; /* Light background color for contrast */
+        border-radius: 10px; /* Softened corners */
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
     }
 
     h1 {
         text-align: center;
-        color: #5a67d8;
-        font-size: 2rem;
-        margin-bottom: 20px;
+        color: #5a67d8; /* Brand color */
+        font-size: 2.5rem; /* Increased font size */
+        margin-bottom: 30px; /* More space below the heading */
     }
 
     .filter-section {
         display: flex;
-        gap: 10px;
-        margin-bottom: 20px;
         justify-content: center;
+        margin-bottom: 30px; /* More space below the filter section */
     }
 
     .filter-section input {
-        padding: 8px;
-        font-size: 1rem;
-        border-radius: 4px;
-        border: 1px solid #ddd;
+        padding: 12px; /* More padding for input */
+        font-size: 1.1rem; /* Slightly larger font size */
+        border-radius: 5px;
+        border: 1px solid #ccc;
         width: 100%;
+        max-width: 400px; /* Limit input field width */
+        transition: border-color 0.3s; /* Smooth transition */
+    }
+
+    .filter-section input:focus {
+        border-color: #5a67d8; /* Change border color on focus */
+        outline: none; /* Remove default outline */
+        box-shadow: 0 0 5px rgba(90, 103, 216, 0.5); /* Subtle glow */
     }
 
     .course-catalog {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-        gap: 20px;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); /* Responsive grid */
+        gap: 30px; /* Increased gap for spacious layout */
     }
 
     .course-item {
-        border: 1px solid #ddd;
-        padding: 15px;
-        border-radius: 8px;
-        background-color: #f9f9f9;
-        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        border-radius: 10px; /* Softened corners */
+        background-color: #fff; /* White background for cards */
+        padding: 20px; /* Added padding */
+        box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1); /* Slightly stronger shadow */
+        transition: transform 0.3s ease, box-shadow 0.3s ease; /* Smooth transitions */
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between; /* Space for content */
     }
 
     .course-item:hover {
-        transform: scale(1.02);
-        box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.15);
+        transform: translateY(-5px); /* Lift effect on hover */
+        box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.15); /* Deeper shadow on hover */
     }
 
-    .course-item h3 {
-        color: #2d3748;
-        font-size: 1.25rem;
-        margin-top: 0;
+    .course-item img {
+        border-radius: 10px; /* Softened corners for images */
+        max-height: 150px; /* Limit image height */
+        object-fit: cover; /* Cover aspect ratio */
+        margin-bottom: 15px; /* Space between image and text */
+    }
+
+    .course-item h5 {
+        color: #2d3748; /* Darker color for headings */
+        font-size: 1.5rem; /* Increased font size for titles */
+        margin: 0; /* Remove default margin */
     }
 
     .course-item p {
-        color: #4a5568;
-        font-size: 1rem;
-        margin: 10px 0 0;
+        color: #4a5568; /* Gray color for text */
+        font-size: 1rem; /* Consistent font size */
+        margin: 10px 0 0; /* Space above */
+        flex-grow: 1; /* Allow text to take space */
+    }
+
+    .button-container {
+        display: flex;
+        justify-content: space-between; /* Space buttons evenly */
+        margin-top: 15px; /* Space above buttons */
+    }
+
+    .btn {
+        padding: 10px 15px; /* Padding for buttons */
+        border-radius: 5px; /* Softened corners */
+        border: none;
+        cursor: pointer; /* Pointer cursor */
+        font-weight: bold; /* Bold text */
+    }
+
+    .btn-update {
+        background-color: #5a67d8; /* Primary color for update button */
+        color: white;
+        transition: background-color 0.3s;
+    }
+
+    .btn-update:hover {
+        background-color: #4c51bf; /* Darker shade on hover */
+    }
+
+    .btn-delete {
+        background-color: #e53e3e; /* Red for delete button */
+        color: white;
+        transition: background-color 0.3s;
+    }
+
+    .btn-delete:hover {
+        background-color: #c53030; /* Darker shade on hover */
     }
 </style>
 
@@ -76,7 +130,7 @@
     <h1>List Courses</h1>
 
     <div class="filter-section">
-        <input type="text" placeholder="Search by course name" @bind="searchText" @onkeydown="HandleEnterKey" />
+        <input type="text" placeholder="Search by course name" @bind="searchText" class="form-control" @oninput="OnSearchInput" />
     </div>
 
     @if (filteredCourses == null)
@@ -108,11 +162,28 @@
     private List<Course> courses;
     private List<Course> filteredCourses;
     private string searchText = string.Empty;
+    private System.Timers.Timer searchTimer;
 
     protected override async Task OnInitializedAsync()
     {
         courses = await CourseService.GetCoursesAsync();
-        ApplyFilters();
+        filteredCourses = courses; // Initialize filteredCourses to display all initially
+    }
+
+    private void OnSearchInput(ChangeEventArgs e)
+    {
+        searchText = e.Value?.ToString() ?? string.Empty;
+
+        // Reset and start a timer to delay filtering
+        searchTimer?.Stop();
+        searchTimer = new System.Timers.Timer(300); // 300 ms debounce
+        searchTimer.Elapsed += (s, ev) =>
+        {
+            searchTimer.Stop(); // Stop the timer
+            InvokeAsync(ApplyFilters); // Use InvokeAsync to ensure this runs on the UI thread
+        };
+        searchTimer.AutoReset = false;
+        searchTimer.Start();
     }
 
     private void ApplyFilters()
@@ -120,13 +191,11 @@
         filteredCourses = courses
             .Where(c => string.IsNullOrEmpty(searchText) || c.Name.Contains(searchText, StringComparison.OrdinalIgnoreCase))
             .ToList();
+        StateHasChanged(); // Trigger a re-render
     }
 
-    private void HandleEnterKey(KeyboardEventArgs e)
+    public void Dispose()
     {
-        if (e.Key == "Enter")
-        {
-            ApplyFilters();
-        }
+        searchTimer?.Dispose(); // Clean up the timer when the component is disposed
     }
 }
